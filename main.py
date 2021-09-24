@@ -1,69 +1,67 @@
 import asyncio
+import time
 
-import aiohttp
+from markets.binance.binance_market import BinanceMarket
+from markets.markets import Markets
+from misc.console import log
+from programs.ma import MovingAverage
+from programs.program import Program
+from ui.server import Server
 
-from comm.client import Client
-from interface.server import Server
-from misc.console import log, error
-from misc.state import State
-
-TAG_WS = "WS"
-
-
-def on_shutdown(signum, frame):
-    State.exit()
+TAG = "Core"
 
 
-async def main():
-    # signal.signal(signal.SIGINT, on_shutdown)
+class Core:
+    def __init__(self):
+        self.server = None
+        self.markets: Markets = Markets()
+        self.programs = [Program]
 
-    server = Server()
-    await server.start()
+    async def main(self):
+        start = time.time()
+        log(TAG, "Initializing...")
 
-    # Real Account - Use with precaution!
-    client = Client("yyJA1NNpb0GKYvt8ZQXU8ndeYBftNi1wHUjbvXrd4jyergodkbIiVnG74yyu9oYU",
-                    "9VLpQLMg0GCSnn0PQ8pNaDo8xVKNYN4Vzu4cEFa3ENqifHTpzImUBqpNe8Ebry6E")
-    # Testnet Account
-    # client = Client("U0mgeLBjMFvL2OwFoKAvYCvdZjYD7LtFIuAlNc0dgrk4EE0r2v5rI25m7TZwCtvJ",
-    #                 "tkq6hF0C6OAsUl3EFgdpXxeqLEVFgoFQeQrWtklaM4F6n8KmYD3V96ULPGcqMX97")
-    while True:
-        try:
-            log(TAG_WS, "Connecting to Binance's WebSocket market streams...")
-            async with aiohttp.ClientSession() as session:
-                async with session.ws_connect("wss://stream.binance.com:9443/ws/!bookTicker") as ws:
-                    log(TAG_WS, "Connected to Binance's WebSocket market streams.")
-                    async for msg in ws:
-                        if msg.type == aiohttp.WSMsgType.TEXT:
-                            print(msg)
-                        elif msg.type == aiohttp.WSMsgType.ERROR:
-                            error(TAG_WS, f"WebSocket connection was closed unexpectedly {ws.exception()}")
-            log(TAG_WS, "Disconnected from Binance's WebSocket market streams. Reconnecting...")
-        except aiohttp.ClientError as ex:
-            print("owo")
-            error(TAG_WS, "Failed to connect to Binance's WebSocket market streams. "
-                          f"Retrying in a second... ({ex})")
-            await asyncio.sleep(1)
+        self.server = Server()
+        await self.server.start()
 
-    # market = Market()
-    # market.on_init(client)
-    # market.on_updated_trigger = asyncio.Event()
-    #
-    # async def start():
-    #     while State.ok():
-    #         await market.on_updated_trigger.wait()
-    #         market.on_updated_trigger.clear()
-    #         # await asyncio.sleep(.5)
-    #         # await server.io.emit("opportunities", redfox.opportunities)
-    #
-    # await asyncio.gather(*[
-    #     asyncio.create_task(streamer.run()),
-    #     asyncio.create_task(market.run(streamer)),
-    #     asyncio.create_task(start()),
-    #     # asyncio.create_task(redfox.on_trade())
-    # ])
-    #
-    # await server.stop()
+        # Real Account - Use with precaution!
+        self.markets.append(
+            BinanceMarket(
+                "yyJA1NNpb0GKYvt8ZQXU8ndeYBftNi1wHUjbvXrd4jyergodkbIiVnG74yyu9oYU",
+                "9VLpQLMg0GCSnn0PQ8pNaDo8xVKNYN4Vzu4cEFa3ENqifHTpzImUBqpNe8Ebry6E"
+            )
+        )
+
+        # Testnet Account
+        # self.markets.append(
+        #     BinanceMarket(
+        #         "U0mgeLBjMFvL2OwFoKAvYCvdZjYD7LtFIuAlNc0dgrk4EE0r2v5rI25m7TZwCtvJ",
+        #         "tkq6hF0C6OAsUl3EFgdpXxeqLEVFgoFQeQrWtklaM4F6n8KmYD3V96ULPGcqMX97"
+        #     )
+        # )
+
+        await self.markets.init()
+        self.markets.run()
+
+        log(TAG, f"{len(self.markets)} market(s) ready.")
+        log(TAG, f"Initialized. ({(time.time() - start) * 1000 :.0f}ms)")
+
+        self.programs = [
+            MovingAverage()
+        ]
+
+        log(TAG, f"{len(self.programs)} program(s) loaded.")
+        for program in self.programs:
+            await program.init(self.markets)
+        log(TAG, f"{len(self.programs)} program(s) up and running.")
+        while True:
+            for program in self.programs:
+                await program.run_schedules(self.markets)
+                await asyncio.sleep(.1)
+
+        await self.server.stop()
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    core = Core()
+    asyncio.run(core.main())

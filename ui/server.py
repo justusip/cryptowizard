@@ -3,7 +3,7 @@ import socketio
 
 from misc.console import *
 
-TAG = "ui"
+TAG = " UI "
 
 
 class Server:
