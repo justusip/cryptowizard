@@ -2,11 +2,8 @@
     <img src="redfox.png" alt="react beautiful dnd logo" />
 </p>
 <h1 align="center">RedWolf</h1>
-
 <div align="center">
-
-A proof-of-concept algorithmic trading framework optimised in high-frequency and arbitrage trading
-
+    A proof-of-concept algorithmic trading framework optimised in high-frequency and arbitrage trading
 </div>
 
 ## Implemented Brokers
