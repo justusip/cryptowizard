@@ -1,0 +1,3 @@
+aiohttp~=3.7.4.post0
+ntplib~=0.4.0
+python-socketio

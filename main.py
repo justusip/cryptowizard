@@ -1,5 +1,9 @@
 import asyncio
+import os
 import time
+from pathlib import Path
+
+from dotenv import load_dotenv
 
 from markets.binance.binance_market import BinanceMarket
 from markets.markets import Markets
@@ -9,6 +13,9 @@ from programs.program import Program
 from ui.server import Server
 
 TAG = "Core"
+
+dotenv_path = Path(".").resolve() / '.env'
+load_dotenv(dotenv_path)
 
 
 class Core:
@@ -24,21 +31,12 @@ class Core:
         self.server = Server()
         await self.server.start()
 
-        # Real Account - Use with precaution!
         self.markets.append(
             BinanceMarket(
-                "yyJA1NNpb0GKYvt8ZQXU8ndeYBftNi1wHUjbvXrd4jyergodkbIiVnG74yyu9oYU",
-                "9VLpQLMg0GCSnn0PQ8pNaDo8xVKNYN4Vzu4cEFa3ENqifHTpzImUBqpNe8Ebry6E"
+                os.environ.get("BINANCE_API_KEY"),
+                os.environ.get("BINANCE_SECRET")
             )
         )
-
-        # Testnet Account
-        # self.markets.append(
-        #     BinanceMarket(
-        #         "U0mgeLBjMFvL2OwFoKAvYCvdZjYD7LtFIuAlNc0dgrk4EE0r2v5rI25m7TZwCtvJ",
-        #         "tkq6hF0C6OAsUl3EFgdpXxeqLEVFgoFQeQrWtklaM4F6n8KmYD3V96ULPGcqMX97"
-        #     )
-        # )
 
         await self.markets.init()
         self.markets.run()
