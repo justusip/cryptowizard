@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="redfox.png" alt="react beautiful dnd logo" />
+    <img src="redfox.png" alt="logo" />
 </p>
 <h1 align="center">RedWolf</h1>
 <div align="center">
