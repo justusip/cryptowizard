@@ -3,7 +3,7 @@
 </p>
 <h1 align="center">CryptoWizard (Previously named RedWolf)</h1>
 <div align="center">
-    A proof-of-concept algorithmic trading framework optimised in crypto-currencies trading
+    A proof-of-concept algorithmic trading framework optimised in cryptocurrencies-trading
 </div>
 
 ## Implemented Brokers
