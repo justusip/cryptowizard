@@ -1,10 +1,4 @@
-<p align="center">
-    <img src="redfox.png" alt="logo" />
-</p>
-<h1 align="center">CryptoWizard</h1>
-<div align="center">
-    A proof-of-concept algorithmic trading framework optimised in cryptocurrencies-trading
-</div>
+Cryptocurrency algorithmic trading framework through Binance API
 
 ## Implemented Brokers
 - Binance
